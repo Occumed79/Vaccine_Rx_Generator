@@ -1,19 +1,11 @@
-"""Render entrypoint with duplicate placeholder protection.
-
-The bundled agreement templates can contain more than one yellow provider-name
-placeholder or green provider-address placeholder. The core generator replaces
-all highlighted placeholders, which causes those values to appear twice.
-
-This entrypoint keeps the existing app and template design intact while limiting
-provider name and address to their first highlighted placeholder in each output
-document. Date and currency-code placeholders retain the existing behavior.
-"""
+"""Render entrypoint with duplicate placeholder protection and the clean landing shell."""
 
 from __future__ import annotations
 
 from typing import Dict, MutableSet
 
 import app as generator_app
+from landing_clean import render_landing_page as clean_render_landing_page
 
 _SINGLE_INSTANCE_FIELDS = frozenset({"name", "address"})
 
@@ -46,7 +38,6 @@ def _replace_highlighted_runs_once(
                     populated_fields.add(field)
             active_field = field
         else:
-            # A single Word placeholder may be split across several adjacent runs.
             run.text = ""
 
         run.font.highlight_color = None
@@ -76,9 +67,8 @@ def _generate_document_without_duplicate_provider_fields(template, row):
     return output.getvalue(), total_counts
 
 
-# Keep the existing Streamlit UI and generation pipeline, replacing only the
-# document-generation function responsible for the duplicate output.
 generator_app.generate_document = _generate_document_without_duplicate_provider_fields
+generator_app.render_landing_page = clean_render_landing_page
 
 
 if __name__ == "__main__":
